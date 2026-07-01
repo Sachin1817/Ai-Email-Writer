@@ -12,6 +12,7 @@ app.use(helmet());
 // Cross-Origin Resource Sharing
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:5173",
+  "https://ai-email-writer-three-mauve.vercel.app",
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
@@ -22,8 +23,14 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (curl, Postman, mobile) or whitelisted origins
-      if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+      // Allow requests with no origin (curl, Postman, mobile), whitelisted origins, or any Vercel subdomain
+      const cleanOrigin = origin ? origin.replace(/\/$/, "") : "";
+      if (
+        !origin || 
+        allowedOrigins.some(o => o.replace(/\/$/, "") === cleanOrigin) || 
+        /^http:\/\/localhost:\d+$/.test(origin) || 
+        /\.vercel\.app$/.test(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS policy: Origin ${origin} is not allowed`));
